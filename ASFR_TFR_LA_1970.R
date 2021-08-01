@@ -13,6 +13,7 @@
 library(dplyr)
 require(ggplot2)
 require("ipumsr")
+printf <- function(...) cat(sprintf(...))
 
 #set pathway
 setwd("C:/Users/HOME/Dropbox/Webpage/LAFP/data")
@@ -33,7 +34,6 @@ if (!exists("fulldata")) {
 #Retrieve the age of the mother and store in fullMotherAgeAtBirth the value motherAge-age
 
 ##profiling variables
-timestart = proc.time()
 peoplePerBlock <- 10000;
 nextPerson <- 1;
 fullMotherAgeAtBirth <- integer(nrow(fulldata))
@@ -42,6 +42,12 @@ profilingPeople = 100000;
 maxLoads = profilingPeople/peoplePerBlock;
 numLoads = 0;
 profiling = 0;
+households <- unique(fulldata$household_id)
+householdsOriginal <- households
+householdTotal <- length(households)
+householdCount <- 0;
+timestart = proc.time()
+
 while(nextPerson <= nrow(fulldata)) {
   firstPerson <- nextPerson;
   census <- fulldata[firstPerson:min(nrow(fulldata), nextPerson + peoplePerBlock - 1), ]
@@ -73,7 +79,14 @@ while(nextPerson <= nrow(fulldata)) {
         fullMotherAgeAtBirth[fullIdx] <- motherAge - childAge
       }
     }
-  }
+    if(householdCount %% 1000 == 0) {
+      timecur <- proc.time()
+      elapsed <- as.numeric(timecur[1] - timestart[1] + timecur[2] - timestart[2])/3600
+      printf("Done %d households out of %d (%.2f%%) [approx %d people out of %d] in %.3fhrs (projection: %.2fh)\n", 
+             householdCount, householdTotal, householdCount/householdTotal * 100, firstPerson, nrow(fulldata), elapsed, elapsed*householdTotal/householdCount)
+    }
+    householdCount <- householdCount + 1
+  } # for hid
 }
 
 fulldata$fullMotherAgeAtBirth <- fullMotherAgeAtBirth
