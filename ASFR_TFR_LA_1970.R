@@ -97,7 +97,7 @@ unmatched <- fulldata %>%
 matched <- fulldata %>% 
   filter(AGE<=14 & fullMotherAgeAtBirth!=0) %>% 
   group_by(AGE, COUNTRY) %>% 
-  summarise(n_child_match=n())
+  summarise(n_child_match=n(), .groups = "keep")
 
 
 for (i in 1:15) {
@@ -105,18 +105,26 @@ for (i in 1:15) {
 }
 
 #for each country()
-
+ASFR_YEARS_total <- NULL
+theseCountries <- unique(fulldata$COUNTRY)
+for (c in 1:nrow(theseCountries)) {
 asfr <- matrix(nrow=41, ncol = 3)
 asfr <- as.data.frame(asfr)
 colnames(asfr) <- c("numerator", "denominator", "asfr")
 asfr$age <- c(15:55)
 
-probsurv_child <- read.csv("country_ProbSurv.csv")
-probsurv_women <- read.csv("country_WomenProbSurv.csv")
+code <- theseCountries[c]
+country <- code_to_country(code)
+
+#Import lifetables data by country
+probsurv_child <- read.csv(sprintf("%s_ProbSurv.csv", country))
+probsurv_women <- read.csv(sprintf("%s_WomenProbSurv.csv", country))
+
+fullCensus <- fulldata %>%       # fullCensus is now the full sample of one country
+  filter(COUNTRY==code)
 
 allWomenAge <- fullCensus %>% 
   filter(SEX==2) %>% 
-  filter() %>%  #by country
   count(AGE)
 
 #Calculating the ASFR per each year
@@ -150,7 +158,7 @@ for (childAge in 0:14) {
     filter(AGE==childAge) %>%
     filter(fullMotherAgeAtcensus>=motherAgeMin & fullMotherAgeAtcensus<=motherAgeMax)
   
-  ASFR_TMP <- ASFR_TMP %>% 
+  ASFR_TMP <- ASFR_TMP %>%
     mutate(women=allWomenAge$n[allWomenAge$AGE %in% c(ASFR_TMP$fullMotherAgeAtcensus)],
            women_adjusted= women/prob,
            asfr=n_child_adjusted/women_adjusted)
@@ -160,21 +168,15 @@ for (childAge in 0:14) {
 }
 
 ASFR_YEARS$Ageatbirth <- ASFR_YEARS$fullMotherAgeAtcensus - ASFR_YEARS$AGE
-
-#ASFR_antlow <- ASFR_YEARS
-#ASFR_boy <- ASFR_YEARS
-#ASFR_cau <- ASFR_YEARS
-#ASFR_cund <- ASFR_YEARS
-ASFR_nari <- ASFR_YEARS
-
-
-ASFR_YEARS_total <- rbind(ASFR_boy, ASFR_cau)
-ASFR_YEARS_total <- rbind(ASFR_YEARS_total, ASFR_cund)
-ASFR_YEARS_total <- rbind(ASFR_YEARS_total, ASFR_nari)
-ASFR_YEARS_total <- rbind(ASFR_YEARS_total, ASFR_antlow)
+ASFR_YEARS$COUNTRY <- code
+if (exists("ASFR_YEARS_total"))
+  ASFR_YEARS_total <- rbind(ASFR_YEARS_total, ASFR_YEARS)
+else
+  ASFR_YEARS_total <- ASFR_YEARS
+} # for each country
 
 ASFR_all <- ASFR_YEARS_total %>% 
-  group_by(fullMotherAgeAtcensus, AGE, year) %>% 
+  group_by(fullMotherAgeAtcensus, AGE, year, COUNTRY) %>% 
   summarise(total_women=sum(women_adjusted),
             total_child=sum(n_child_adjusted), .groups = 'drop') %>% 
   mutate(asfr=total_child/total_women)
