@@ -53,30 +53,29 @@ timestart = proc.time()
 while(nextPerson <= nrow(fulldata)) {
   firstPerson <- nextPerson;
   census <- fulldata[firstPerson:min(nrow(fulldata), nextPerson + peoplePerBlock - 1), ]
-  
-  lastHid <- census$household_id[nrow(census)]
-  census[census$household_id != lastHid, ]
+  census <- apply(as.matrix.noquote(census), 2, as.numeric)
+  lastHid <- census[nrow(census), "household_id"]
   
   lastPerson <- firstPerson + nrow(census) - 1;
   nextPerson <- lastPerson + 1;
   
-  theseHouseholds <- unique(census$household_id);
+  theseHouseholds <- unique(census[, "household_id"]);
   
   for(hid in theseHouseholds) {
-    household_census_rows = (census$household_id == hid)
+    household_census_rows = (census[, "household_id"] == hid)
     indeces <- which(household_census_rows)
-    household = census[household_census_rows, ]
+    household = census[household_census_rows,,drop=FALSE]
     # for each potential child, retrieve the age and store in fullMotherAgeAtBirth the value motherAge-age
     for (p in 1:nrow(household)) {
       person2 <- household[p,];
-      if(person2$MOMLOC != 0) {
+      if(person2["MOMLOC"] != 0) {
         # this person is a child
-        mother <- subset(household, PERNUM == person2$MOMLOC);
+        mother <- household[household[,"PERNUM"] == person2["MOMLOC"],,drop=FALSE];
         if(nrow(mother) != 1){ 
           next;
         }
-        motherAge = mother$AGE;
-        childAge <- household[[p, "AGE"]]
+        motherAge = mother[,"AGE"];
+        childAge <- household[p, "AGE"]
         fullIdx = indeces[p] + firstPerson - 1
         fullMotherAgeAtBirth[fullIdx] <- motherAge - childAge
       }
