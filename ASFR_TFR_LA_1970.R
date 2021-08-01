@@ -76,6 +76,8 @@ while(nextPerson <= nrow(fulldata)) {
   }
 }
 
+fulldata$fullMotherAgeAtBirth <- fullMotherAgeAtBirth
+
 code_to_country <- function(code) {
   labels_ <- ipums_val_labels(fulldata$COUNTRY)  
   for (n_ in 1:nrow(labels_)) {
