@@ -205,12 +205,30 @@ TFR <- ASFR_all %>%
   summarise(tfr=sum(asfr)) %>% 
   ungroup()
 
-#4. Graph the outcome
-tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(Census), color=as.factor(Census))) + 
+#4. Graph the outcome: I am separating the countries based on their geographical location or historical background
+
+for (n in 1:nrow(TFR)) {
+  TFR$name[n] <- code_to_country(TFR$COUNTRY[n])
+}
+
+#Argentina, Chile, Uruguay
+TFR_conossur <- TFR %>% 
+  filter(COUNTRY=="Argentina" | COUNTRY=="Chile" | COUNTRY=="Uruguay")
+
+#Colombia, Venezuela, Ecuador, Panama
+
+#Bolivia, Brazil, Paraguay
+
+#Mexico, Costa Rica, Honduras, Guatemala,
+
+#Trinidad y Tobago, Haiti
+
+
+tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(COUNTRY), color=as.factor(COUNTRY))) + 
   geom_smooth(method = "loess", alpha=0, size=1.5) + 
   #geom_line() +
-  scale_x_continuous(breaks = seq(1958,1970, by=2)) + ylab("TFR") +  xlab("year") +
-  scale_color_brewer(palette = "Dark2", type = "qual") +
+  scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
+  #scale_color_brewer(palette = "Dark2", type = "qual") +
   theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
                       axis.title =element_text(size = 20) ,
                       axis.text =element_text(size = 20),
