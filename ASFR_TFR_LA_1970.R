@@ -102,22 +102,7 @@ code_to_country <- function(code) {
   return ("ERROR")
 }
 #2. Calculate ASFR for 14 years: adjusting by children and maternal and unmatched children 
-#Adjusting by unmatched children
 
-unmatched <- fulldata %>% 
-  filter(AGE<=14 & fullMotherAgeAtBirth==0) %>% 
-  group_by(AGE, COUNTRY) %>% 
-  summarise(n_child_unmatch=n())
-
-matched <- fulldata %>% 
-  filter(AGE<=14 & fullMotherAgeAtBirth!=0) %>% 
-  group_by(AGE, COUNTRY) %>% 
-  summarise(n_child_match=n(), .groups = "keep")
-
-
-for (i in 1:15) {
-  unmatched$prop[i] <- matched$n_child_match[i]/sum(fulldata$AGE==i-1)
-}
 
 #for each country()
 ASFR_YEARS_total <- NULL
@@ -138,6 +123,23 @@ probsurv_women <- read.csv(sprintf("%s_WomenProbSurv.csv", country))
 
 fullCensus <- fulldata %>%       # fullCensus is now the full sample of one country
   filter(COUNTRY==code)
+
+#Adjusting by unmatched children
+
+unmatched <- fullCensus %>% 
+  filter(AGE<=14 & fullMotherAgeAtBirth==0) %>% 
+  group_by(AGE, COUNTRY) %>% 
+  summarise(n_child_unmatch=n())
+
+matched <- fullCensus %>% 
+  filter(AGE<=14 & fullMotherAgeAtBirth!=0) %>% 
+  group_by(AGE, COUNTRY) %>% 
+  summarise(n_child_match=n(), .groups = "keep")
+
+
+for (i in 1:15) {
+  unmatched$prop[i] <- matched$n_child_match[i]/sum(fullCensus$AGE==i-1)
+}
 
 allWomenAge <- fullCensus %>% 
   filter(SEX==2) %>% 
