@@ -114,7 +114,7 @@ matched <- fulldata %>%
 
 
 for (i in 1:15) {
-  unmatched$prop[i] <- matched$n_child_match[i]/sum(fullCensus$AGE==i-1)
+  unmatched$prop[i] <- matched$n_child_match[i]/sum(fulldata$AGE==i-1)
 }
 
 #for each country()
