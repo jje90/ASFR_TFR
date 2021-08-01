@@ -26,6 +26,8 @@ if (!exists("fulldata")) {
   ddi <- read_ipums_ddi("ipumsi_00028.xml")
   fulldata <- read_ipums_micro(ddi)
   fulldata$household_id <- paste(fulldata$SAMPLE, fulldata$SERIAL, sep="")
+  fulldata$SAMPLE <- NULL
+  fulldata$SERIAL <- NULL
 }
 #### Calculate the ASFR using the OCM from Reid et. al. and using the MOMLOC in ipums developed by ####
 
