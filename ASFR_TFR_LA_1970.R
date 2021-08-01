@@ -21,11 +21,11 @@ setwd("C:/Users/HOME/Dropbox/Webpage/LAFP/data")
 # NOTE: To load data, you must download both the extract's data and the DDI
 # and also set the working directory to the folder with these files (or change the path).
 
-ddi <- read_ipums_ddi("ipumsi_00028.xml")
-fulldata <- read_ipums_micro(ddi)
-
-fulldata$household_id <- paste(fulldata$SAMPLE, fulldata$SERIAL, sep="")
-
+if (!exists("fulldata")) {
+  ddi <- read_ipums_ddi("ipumsi_00028.xml")
+  fulldata <- read_ipums_micro(ddi)
+  fulldata$household_id <- paste(fulldata$SAMPLE, fulldata$SERIAL, sep="")
+}
 #### Calculate the ASFR using the OCM from Reid et. al. and using the MOMLOC in ipums developed by ####
 
 #1. Calculate mother age at birth for each child using MOMLOC. 
