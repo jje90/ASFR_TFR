@@ -122,7 +122,8 @@ for (i in 1:15) {
 #for each country()
 ASFR_YEARS_total <- NULL
 theseCountries <- unique(fulldata$COUNTRY)
-for (c in 1:nrow(theseCountries)) {
+
+for (c in 1:length(theseCountries)) {
 asfr <- matrix(nrow=41, ncol = 3)
 asfr <- as.data.frame(asfr)
 colnames(asfr) <- c("numerator", "denominator", "asfr")
@@ -177,7 +178,7 @@ for (childAge in 0:14) {
     mutate(women=allWomenAge$n[allWomenAge$AGE %in% c(ASFR_TMP$fullMotherAgeAtcensus)],
            women_adjusted= women/prob,
            asfr=n_child_adjusted/women_adjusted)
-  ASFR_TMP$year <- 1972 - childAge
+  ASFR_TMP$year <- fullCensus$YEAR[1] - childAge
   ASFR_YEARS <- rbind(ASFR_YEARS, ASFR_TMP)
   rm(ASFR_TMP)
 }
@@ -198,8 +199,9 @@ ASFR_all <- ASFR_YEARS_total %>%
 
 #3. Calculate Total Fertility Rate
 TFR <- ASFR_all %>% 
-  group_by(year) %>% 
-  summarise(tfr=sum(asfr))
+  group_by(year, COUNTRY) %>% 
+  summarise(tfr=sum(asfr)) %>% 
+  ungroup()
 
 #4. Graph the outcome
 tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(Census), color=as.factor(Census))) + 
