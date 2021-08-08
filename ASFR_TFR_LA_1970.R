@@ -212,10 +212,42 @@ for (n in 1:nrow(TFR)) {
 
 #Argentina, Chile, Uruguay
 TFR_conossur <- TFR %>% 
-  filter(COUNTRY=="Argentina" | COUNTRY=="Chile" | COUNTRY=="Uruguay")
+  filter(name=="Argentina" | name=="Chile" | name=="Uruguay")
+
+tfr_graph_cono <- ggplot(TFR_conossur, aes(x=year, y=tfr, group=as.factor(name), color=as.factor(name))) + 
+  #geom_smooth(method = "loess", alpha=0, size=1.5) + 
+  geom_line() +
+  scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
+  #scale_color_brewer(palette = "Dark2", type = "qual") +
+  theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
+                      axis.title =element_text(size = 20) ,
+                      axis.text =element_text(size = 20),
+                      plot.title = element_text(size = 15),
+                      legend.text=element_text(size=20),
+                      legend.position = "bottom",
+                      legend.title = element_blank())
+
+
+tfr_graph_cono
 
 #Colombia, Venezuela, Ecuador, Panama
+TFR_granco <- TFR %>% 
+  filter(name=="Colombia" | name=="Venezuela" | name=="Ecuador" | name=="Panama")
 
+tfr_graph_granco <- ggplot(TFR_granco, aes(x=year, y=tfr, group=as.factor(name), color=as.factor(name))) + 
+  geom_smooth(method = "loess", alpha=0, size=1.5) + 
+  #geom_line() +
+  scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
+  #scale_color_brewer(palette = "Dark2", type = "qual") +
+  theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
+                      axis.title =element_text(size = 20) ,
+                      axis.text =element_text(size = 20),
+                      plot.title = element_text(size = 15),
+                      legend.text=element_text(size=20),
+                      legend.position = "bottom",
+                      legend.title = element_blank())
+
+tfr_graph_granco
 #Bolivia, Brazil, Paraguay
 
 #Mexico, Costa Rica, Honduras, Guatemala,
@@ -223,7 +255,7 @@ TFR_conossur <- TFR %>%
 #Trinidad y Tobago, Haiti
 
 
-tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(COUNTRY), color=as.factor(COUNTRY))) + 
+tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(name), color=as.factor(name))) + 
   geom_smooth(method = "loess", alpha=0, size=1.5) + 
   #geom_line() +
   scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
@@ -237,7 +269,7 @@ tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(COUNTRY), color=as.f
                       legend.title = element_blank())
 
 
-tfr_graph
+tfr_graph_granco
 
 ggsave("TFR_groups.png")
 
