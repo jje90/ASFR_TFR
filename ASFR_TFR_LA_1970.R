@@ -147,12 +147,11 @@ allWomenAge <- fullCensus %>%
 
 #Calculating the ASFR per each year
 ASFR_TFR <- fullCensus %>% 
-  filter(fullMotherAgeAtBirth!=0) %>% 
+  filter(fullMotherAgeAtBirth>0 & fullMotherAgeAtBirth<100) %>% #This is the case for Brazil and others
   select(AGE, fullMotherAgeAtBirth) %>% 
   mutate(fullMotherAgeAtcensus=AGE+fullMotherAgeAtBirth) %>% 
   group_by(fullMotherAgeAtcensus, AGE) %>% 
   summarise(n_child = n(), .groups = 'drop') %>% 
-  #spread(AGE, n_child)
   ungroup()
 
 ASFR_TFR$n_child_adjusted <- NA
