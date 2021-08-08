@@ -179,7 +179,7 @@ for (childAge in 0:14) {
     mutate(women=allWomenAge$n[allWomenAge$AGE %in% c(ASFR_TMP$fullMotherAgeAtcensus)],
            women_adjusted= women/prob,
            asfr=n_child_adjusted/women_adjusted)
-  ASFR_TMP$year <- fullCensus$YEAR[1] - childAge
+  ASFR_TMP$year <- fullCensus$YEAR[1] - 1 - childAge
   ASFR_YEARS <- rbind(ASFR_YEARS, ASFR_TMP)
   rm(ASFR_TMP)
 }
