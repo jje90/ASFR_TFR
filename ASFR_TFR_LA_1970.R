@@ -3,16 +3,21 @@
 #and human life table database (https://www.lifetable.de/cgi-bin/index.php). I obtained unabridged lifetables using the package MORTPAK
 # Author: Juliana Jaramillo Echeverri
 # Date: 20 July 2021
-# Updated: 
+# Updated: 4 September 2021: To make it public for the blog.
 
 # Contents: 
+
   #1. Calculate mother age at birth for each child. 
-  #2. Calculate the Age Specific Fertility Rates
+  #2. Calculate the Age Specific Fertility Rates for 14 years
+  #3. Calculates TFR for 14 years
+  #4. Graph outcomes
+  #5. Create some maps
 
 # INSTALL PACKAGES
 library(dplyr)
 require(ggplot2)
 require("ipumsr")
+library("viridis")
 printf <- function(...) cat(sprintf(...))
 
 #set pathway
@@ -29,9 +34,9 @@ if (!exists("fulldata")) {
   fulldata$SAMPLE <- NULL
   fulldata$SERIAL <- NULL
 }
-#### Calculate the ASFR using the OCM from Reid et. al. and using the MOMLOC in ipums developed by ####
+#### Calculations following Reid et. al. (2020) [https://www.tandfonline.com/doi/full/10.1080/00324728.2019.1630563] and using the MOMLOC in IPUMS (https://international.ipums.org/international/resources/misc_docs/pointer_working_paper_2009.pdf) ####
 
-#1. Calculate mother age at birth for each child using MOMLOC. 
+####  1. Calculate mother age at birth for each child using MOMLOC. ####
 
 #Retrieve the age of the mother and store in fullMotherAgeAtBirth the value motherAge-age
 
@@ -95,7 +100,7 @@ code_to_country <- function(code) {
   }
   return ("ERROR")
 }
-#2. Calculate ASFR for 14 years: adjusting by children and maternal and unmatched children 
+#### 2. Calculate ASFR for 14 years: adjusting by children and maternal and unmatched children  ####
 
 #for each country
 ASFR_YEARS_total <- NULL
@@ -191,13 +196,13 @@ ASFR_all <- ASFR_YEARS_total %>%
             total_child=sum(n_child_adjusted), .groups = 'drop') %>% 
   mutate(asfr=total_child/total_women)
 
-#3. Calculate Total Fertility Rate
+#### 3. Calculate Total Fertility Rate ####
 TFR <- ASFR_all %>% 
   group_by(year, COUNTRY) %>% 
   summarise(tfr=sum(asfr)) %>% 
   ungroup()
 
-#4. Graph the outcome: I am separating the countries based on their geographical location or historical background
+#### 4. Graph the outcome: I am separating the countries based on their geographical location or historical background ####
 
 for (n in 1:nrow(TFR)) {
   TFR$name[n] <- code_to_country(TFR$COUNTRY[n])
@@ -207,11 +212,13 @@ for (n in 1:nrow(TFR)) {
 TFR_conossur <- TFR %>% 
   filter(name=="Argentina" | name=="Chile" | name=="Uruguay")
 
-tfr_graph_cono <- ggplot(TFR_conossur, aes(x=year, y=tfr, group=as.factor(name), color=as.factor(name))) + 
-  #geom_smooth(method = "loess", alpha=0, size=1.5) + 
-  geom_line() +
+tfr_graph_cono <- ggplot(TFR_conossur, aes(x=year, y=tfr)) +
+geom_point(aes(color = name)) +
   scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
-  #scale_color_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(limits=c(2,8.5))+
+  geom_smooth(aes(color = name, fill = name), method = "loess", alpha=0.1) +
+  scale_color_viridis(discrete = TRUE, option = "D")+
+  scale_fill_viridis(discrete = TRUE) +
   theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
                       axis.title =element_text(size = 20) ,
                       axis.text =element_text(size = 20),
@@ -220,18 +227,20 @@ tfr_graph_cono <- ggplot(TFR_conossur, aes(x=year, y=tfr, group=as.factor(name),
                       legend.position = "bottom",
                       legend.title = element_blank())
 
-
 tfr_graph_cono
+ggsave("C:/Users/HOME/Dropbox/Webpage/LAFP/graphs/cono_sur.png", width = 7.4, height = 4.25)
 
 #Colombia, Venezuela, Ecuador, Panama
 TFR_granco <- TFR %>% 
   filter(name=="Colombia" | name=="Venezuela" | name=="Ecuador" | name=="Panama")
 
-tfr_graph_granco <- ggplot(TFR_granco, aes(x=year, y=tfr, group=as.factor(name), color=as.factor(name))) + 
-  geom_smooth(method = "loess", alpha=0, size=1.5) + 
-  #geom_line() +
+tfr_graph_granco <- ggplot(TFR_granco, aes(x=year, y=tfr)) +
+  geom_point(aes(color = name)) +
   scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
-  #scale_color_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(limits=c(2,8.5))+
+  geom_smooth(aes(color = name, fill = name), method = "loess", alpha=0.1) +
+  scale_color_viridis(discrete = TRUE, option = "D")+
+  scale_fill_viridis(discrete = TRUE) +
   theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
                       axis.title =element_text(size = 20) ,
                       axis.text =element_text(size = 20),
@@ -241,18 +250,65 @@ tfr_graph_granco <- ggplot(TFR_granco, aes(x=year, y=tfr, group=as.factor(name),
                       legend.title = element_blank())
 
 tfr_graph_granco
+ggsave("C:/Users/HOME/Dropbox/Webpage/LAFP/graphs/grancol.png", width =7.4 , height =4.25  )
+
 #Bolivia, Brazil, Paraguay
+TFR_bolbra <- TFR %>% 
+  filter(name=="Bolivia" | name=="Brazil" | name=="Paraguay")
+
+tfr_graph_bolbra <- ggplot(TFR_bolbra, aes(x=year, y=tfr)) +
+  geom_point(aes(color = name)) +
+  scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
+  scale_y_continuous(limits=c(2,8.5))+
+  geom_smooth(aes(color = name, fill = name), method = "loess", alpha=0.1) +
+  scale_color_viridis(discrete = TRUE, option = "D")+
+  scale_fill_viridis(discrete = TRUE) +
+  theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
+                      axis.title =element_text(size = 20) ,
+                      axis.text =element_text(size = 20),
+                      plot.title = element_text(size = 15),
+                      legend.text=element_text(size=20),
+                      legend.position = "bottom",
+                      legend.title = element_blank())
+
+tfr_graph_bolbra
+ggsave("C:/Users/HOME/Dropbox/Webpage/LAFP/graphs/bolbra.png", width =7.4 , height = 4.25 )
 
 #Mexico, Costa Rica, Honduras, Guatemala,
+TFR_central <- TFR %>% 
+  filter(name=="Mexico" | name=="Costa Rica" | name=="Honduras" | name=="Guatemala")
+
+tfr_graph_central <- ggplot(TFR_central, aes(x=year, y=tfr)) +
+  geom_point(aes(color = name)) +
+  scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
+  scale_y_continuous(limits=c(2,8.5))+
+  geom_smooth(aes(color = name, fill = name), method = "loess", alpha=0.1) +
+  scale_color_viridis(discrete = TRUE, option = "D")+
+  scale_fill_viridis(discrete = TRUE) +
+  theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
+                      axis.title =element_text(size = 20) ,
+                      axis.text =element_text(size = 20),
+                      plot.title = element_text(size = 15),
+                      legend.text=element_text(size=20),
+                      legend.position = "bottom",
+                      legend.title = element_blank())
+
+tfr_graph_central
+ggsave("C:/Users/HOME/Dropbox/Webpage/LAFP/graphs/central.png", width =7.4 , height =4.25  )
+
 
 #Trinidad y Tobago, Haiti
 
+TFR_carib <- TFR %>% 
+  filter(name=="Trinidad and Tobago" | name=="Haiti")
 
-tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(name), color=as.factor(name))) + 
-  geom_smooth(method = "loess", alpha=0, size=1.5) + 
-  #geom_line() +
+tfr_graph_carib <- ggplot(TFR_carib, aes(x=year, y=tfr)) +
+  geom_point(aes(color = name)) +
   scale_x_continuous(breaks = seq(1956,1976, by=2)) + ylab("TFR") +  xlab("year") +
-  #scale_color_brewer(palette = "Dark2", type = "qual") +
+  scale_y_continuous(limits=c(2,8.5))+
+  geom_smooth(aes(color = name, fill = name), method = "loess", alpha=0.1) +
+  scale_color_viridis(discrete = TRUE, option = "D")+
+  scale_fill_viridis(discrete = TRUE) +
   theme_bw()  + theme(panel.background = element_blank(), axis.line = element_line(colour = "black"),
                       axis.title =element_text(size = 20) ,
                       axis.text =element_text(size = 20),
@@ -261,8 +317,37 @@ tfr_graph <- ggplot(TFR, aes(x=year, y=tfr, group=as.factor(name), color=as.fact
                       legend.position = "bottom",
                       legend.title = element_blank())
 
+tfr_graph_carib
+ggsave("C:/Users/HOME/Dropbox/Webpage/LAFP/graphs/carib.png", width =7.4 , height = 4.25 )
 
-tfr_graph_granco
 
-ggsave("TFR_groups.png")
+#### 5. Map TFR in 1962 ####
 
+TFR_1962 <- TFR %>% 
+  filter(year==1962)
+
+map.la <- map_data("world") %>% 
+filter(region=="Colombia" | region=="Venezuela" | region=="Ecuador" | region=="Panama" | region=="Argentina" | region=="Chile" | region=="Uruguay" |
+         region=="Bolivia" | region=="Brazil" | region=="Paraguay" | region=="Trinidad and Tobago" | region=="Haiti" | region=="Belize" | region== "El Salvador" |
+         region=="Nicaragua" | region == "French Guiana" | region == "Guyana" | region=="Peru" |region=="Suriname" |
+         region=="Mexico" | region=="Costa Rica" | region=="Honduras" | region=="Guatemala") %>% 
+fortify
+
+map.la <- map.la %>% 
+  left_join(TFR_1962, by=c("region"="name"))
+
+Maptfr1962 <- ggplot() +
+  geom_map(data = map.la, map = map.la,
+           aes(x = long, y = lat, group = group, map_id=region),
+           fill = NA, colour = "#7f7f7f", size=0.1) +
+  geom_map(data = map.la, map=map.la,
+           aes(fill=tfr, map_id=region),
+           colour="#7f7f7f", size=0.1) +
+  scale_fill_continuous(type = "viridis", na.value="#BDBDBD") +
+  scale_y_continuous(breaks=c()) +
+  scale_x_continuous(breaks=c()) +
+  labs(fill="TFR", title="Total Fertility Rate, 1962", x="", y="") +
+  theme_minimal() +  theme(legend.position = "bottom", legend.key.width = unit(2.5, 'cm'))
+
+Maptfr1962
+ggsave("C:/Users/HOME/Dropbox/Webpage/LAFP/graphs/map_1962.png")
