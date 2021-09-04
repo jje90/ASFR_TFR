@@ -35,15 +35,9 @@ if (!exists("fulldata")) {
 
 #Retrieve the age of the mother and store in fullMotherAgeAtBirth the value motherAge-age
 
-##profiling variables
 peoplePerBlock <- 10000;
 nextPerson <- 1;
 fullMotherAgeAtBirth <- integer(nrow(fulldata))
-
-profilingPeople = 100000;
-maxLoads = profilingPeople/peoplePerBlock;
-numLoads = 0;
-profiling = 0;
 households <- unique(fulldata$household_id)
 householdsOriginal <- households
 householdTotal <- length(households)
@@ -103,8 +97,7 @@ code_to_country <- function(code) {
 }
 #2. Calculate ASFR for 14 years: adjusting by children and maternal and unmatched children 
 
-
-#for each country()
+#for each country
 ASFR_YEARS_total <- NULL
 theseCountries <- unique(fulldata$COUNTRY)
 
