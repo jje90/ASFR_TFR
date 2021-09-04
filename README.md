@@ -1,0 +1,2 @@
+# Compute Total Fertility Rates using census data
+This code calculates age-specific and total fertility rates using census data from [IPUMS](https://international.ipums.org/international/) and [Human Life-Table Database](https://www.lifetable.de/cgi-bin/index.php) to study the fertility transition in several countries. It is possible to adapt the code to calculate the TFR by area of residence, level of schooling or the occupational status of the mother. 
